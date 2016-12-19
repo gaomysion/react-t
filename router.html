@@ -1,0 +1,98 @@
+import 'babel-core/polyfill'
+import React from 'react'
+import {render} from 'react-dom'
+import {Provider} from 'react-redux'
+import configureStore from './bin/modules/configureStore'
+import {Router, Route, browserHistory, IndexRoute} from 'react-router'
+import './bin/common/sass/public/standard.scss'
+import './bin/common/sass/public/browser.scss'
+import './bin/common/sass/public/search.scss'
+import './bin/common/sass/public/table.scss'
+import './bin/common/sass/public/customInput.scss'
+const store = configureStore()
+let rootElement = document.getElementById('root')
+
+//三个函数都是异步加载，实现按需加载
+const CustomRouter = {
+    //根路径
+    path: '/',
+    onEnter: function (nextState, replaceState) {
+        console.log('进入：/'+"---");
+    },
+    onLeave: function (prevState) {
+        console.log('离开：/');
+    },
+    //跟路径显示的内容
+    getComponents(location, callback) {
+        require.ensure([], function (require) {
+            callback(null, require('./bin/portal/header/href_route'));
+        })
+    },
+    //默认/展示的路由
+    //indexRoute: {component: require('./bin/asiainfodata/irec/opepp/containers/Top')},
+    //路径嵌套
+    getChildRoutes(location, callback) {
+        require.ensure([], function (require) {
+            callback(null, [
+                //渠道
+                require('./bin/modules/channel/routes'),
+                //运营位
+                require('./bin/modules/operp/routes'),
+                //场景
+                require('./bin/modules/scene/routes'),
+                //场景
+                require('./bin/modules/strategy/routes'),
+                //活动
+                require('./bin/modules/activity/routes'),
+                {
+                    path:'/Icons',
+                    component:require('./bin/common/template/Icon/Icons')
+                }
+            ])
+        })
+    },
+}
+render(
+    <Provider store={store}>
+        <Router  history={browserHistory} routes={CustomRouter}/>
+    </Provider>,
+    rootElement
+)
+
+
+
+
+
+import Href from './href'
+module.exports = {
+    path: 'channelManage',
+    onEnter: function (nextState, replaceState) {
+        console.log('进入：/channel');
+    },
+    onLeave: function (prevState) {
+        console.log('离开：/channel');
+    },
+    getComponents(location, callback) {
+        console.log("about com");
+        require.ensure([], function (require) {
+            callback(null, Href);
+        })
+    },
+    //初始进来跳入模块
+    indexRoute: {component: require('../containers/GridContainer')},
+
+    //路径嵌套
+        getChildRoutes(location, callback) {
+            require.ensure([], function (require) {
+                callback(null, [{
+                    path: 'editIndex',
+                    component: require('../containers/EditChannelContainer')
+                }, {
+                    path: 'createIndex',
+                    component: require('../containers/CreateChannelContainer')
+                }
+                ])
+            })
+    }
+
+}
